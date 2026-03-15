@@ -52,6 +52,7 @@ func getMimetypes(files []string, bar *progressbar.ProgressBar) (map[string][]st
 			bar.Add(1)
 		}
 	}
+	bar.Finish()
 	return mimetypes, nil
 }
 

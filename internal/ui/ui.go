@@ -6,7 +6,6 @@ import (
 
 	"gioui.org/app"
 	"gioui.org/op"
-	"gioui.org/widget/material"
 )
 
 func Run() {
@@ -14,7 +13,7 @@ func Run() {
 	w.Option(app.Title("Photofiler"))
 	var ops op.Ops
 	uiState := newUiState()
-	th := material.NewTheme()
+	th := newTheme()
 
 	go func() {
 		if err := func() error {

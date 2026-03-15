@@ -2,7 +2,6 @@ package ui
 
 import (
 	"log/slog"
-	"photofiler/internal/sources"
 
 	"gioui.org/app"
 	"gioui.org/layout"
@@ -11,16 +10,17 @@ import (
 )
 
 type FolderSelection struct {
-	Path        string
-	ButtonState widget.Clickable
-	PathChan    chan string
-	ErrChan     chan error
+	Path       string
+	PathEditor widget.Editor
+	Button     widget.Clickable
+	PathChan   chan string
+	ErrChan    chan error
 }
 
 type ProcessingOptions struct {
 	// Placeholder for future processing options
-	IgnoreUnsupportedFiles bool
-	ProcessInPlace         bool
+	IgnoreUnsupportedFiles widget.Bool
+	ProcessInPlace         widget.Bool
 }
 
 type UiState struct {
@@ -29,17 +29,20 @@ type UiState struct {
 }
 
 func newUiState() *UiState {
-	return &UiState{
+	state := &UiState{
 		SelectedFolder: FolderSelection{
 			PathChan: make(chan string),
 			ErrChan:  make(chan error),
 		},
 	}
+	state.SelectedFolder.PathEditor.SingleLine = true
+	state.SelectedFolder.PathEditor.ReadOnly = true
+	return state
 }
 
 func (state *UiState) update(w *app.Window, gtx layout.Context) {
 
-	if state.SelectedFolder.ButtonState.Clicked(gtx) {
+	if state.SelectedFolder.Button.Clicked(gtx) {
 		selectFolder(state.SelectedFolder.PathChan, state.SelectedFolder.ErrChan)
 	}
 
@@ -47,7 +50,8 @@ func (state *UiState) update(w *app.Window, gtx layout.Context) {
 	case path := <-state.SelectedFolder.PathChan:
 		slog.Info("Folder selected", "path", path)
 		state.SelectedFolder.Path = path
-		go sources.ValidateSourceData(path)
+		state.SelectedFolder.PathEditor.SetText(path)
+		// go sources.ValidateSourceData(path)
 		w.Invalidate()
 	case err := <-state.SelectedFolder.ErrChan:
 		if err == zenity.ErrCanceled {
